@@ -1,0 +1,36 @@
+outputFilePath:
+    raw: "data/raw/"
+    clean: "data/clean/"
+
+outputFileNames:
+    injuries: injuries.csv
+    pgpd: pgpd.csv
+    pgtd: pgtd.csv
+
+modelRootdirectory: "model/"
+
+#Denotes the standard name for the Date column.
+date: Date
+
+########### NBA INJURIES ###################################################################################################################################################################
+#Denotes the schema for the injuries data.
+nba-injuries-schema:
+    -"Date"
+    -"Team"
+    -"Acquired"
+    -"Relinquished"
+    -"Notes"
+
+#The formatted base url for scraping nba injuries
+nba-injuries-base-url: "http://www.prosportstransactions.com/basketball/Search/SearchResults.php?Player=&Team=&BeginDate={startDate}&EndDate={endDate}&InjuriesChkBx=yes&Submit=Search&start="
+
+#The start number at the end of the base url query.
+nba-injuries-start-num: 25
+
+#The format of the date in the base_url
+nba-injuries-date-format: "%Y-%m-%d"
+########### END OF NBA INJURIES ###################################################################################################################################################################
+
+#Denotes the schema for the pgpd data.
+
+#Denotes the schema for the pgtd data.
