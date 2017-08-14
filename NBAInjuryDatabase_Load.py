@@ -95,7 +95,7 @@ class ScraperWorker(threading.Thread):
         self.in_queue = in_queue
         self.out_queue = out_queue
 
-    def scrape(self, scraper_props):
+    def _scrape(self, scraper_props):
         '''
             Function which takes the scraper properties and scrapes the data associated with it.
         '''
@@ -108,10 +108,13 @@ class ScraperWorker(threading.Thread):
 
     def run(self):
         while True:
+            if(self.in_queue.all_tasks_done()):
+                sys.stdout.write("[ScraperWorker] queue is empty")
+
             scraper_props = self.in_queue.get()
             #Have to use sys.stdout.write(... "\n") in order to write new lines in a non-erratic manner while threading.
             sys.stdout.write(str(datetime.now()) + " [ScraperWorker] Starting: " + scraper_props + "\n")
-            data = self.scrape(scraper_props)
+            data = self._scrape(scraper_props)
             self.out_queue.put(data)
             sys.stdout.write(str(datetime.now()) + " [ScraperWorker] Finished: " + scraper_props + "\n")
             sys.stdout.flush()
@@ -120,8 +123,24 @@ class ScraperWorker(threading.Thread):
 def write_data_frame(output_file, data_frame):
     data_frame.to_csv(output_file)
 
+def date_range(start, end, intervals):
+    diff_time = (end - start) / intervals
+    for i in range(intervals):
+        yield (start + diff_time * i)
+    yield end
+
 def scrape(num_writer_threads, num_scraper_threads, base_url, header, file_name, time_range_begin, time_range_end, start_num):
     #open file to write results
-
-    scraper_props = ProSportsScraperProperties(base_url, header, time_range_begin, time_range_end, start_num, "%Y-%m-%d", False)
+    concurrent = 200
+    in_queue = Queue(concurrent * 2)
+    out_queue = Queue(concurrent * 2)
+    for i in range(concurrent):
+        scraper_worker = ScraperWorker(in_queue, out_queue)
+        scraper_worker.daemon = True
+        writer_worker = WriterWorker(out_queue, write_data_frame)
+        writer_worker.daemon = True
+        scraper_worker.start()
+        writer_worker.start()
+    
+    diff = (time_range_end - time_range_begin) / concurrent
 
